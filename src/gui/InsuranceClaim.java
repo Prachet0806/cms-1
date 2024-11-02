@@ -10,7 +10,7 @@ public class InsuranceClaim {
         this.cattle = cattle;
         this.farmer = farmer;
         this.policy = policy;
-        this.status = "Pending"; // Default status
+        this.status = "Pending"; 
     }
 
     public String getDescription() {

@@ -83,26 +83,25 @@ public class CattleManagementSystemGUI extends JFrame {
         add(cattlePanel, BorderLayout.SOUTH);
         add(actionPanel, BorderLayout.WEST);
 
-        // Adding some insurance policies
         policies.add(new InsurancePolicy("Basic Coverage", "Covers common illnesses and accidents"));
         policies.add(new InsurancePolicy("Comprehensive Coverage", "Includes coverage for major illnesses and accidents, plus routine check-ups"));
         policies.add(new InsurancePolicy("High-Risk Coverage", "Specialized coverage for high-risk breeds or older cattle"));
 
-        // Adding sample farmers, cattle, and claims
+     
         addSampleData();
     }
 
     private void addSampleData() {
-        // Create a sample farmer
+    
         Farmer farmer = new Farmer("John Doe");
         farmers.add(farmer);
 
-        // Create a sample cattle
+
         Cattle cattle = new Cattle("Bessie", "Holstein", 5, "Healthy", true);
         farmer.addCattle(cattle);
 
-        // Create a sample claim and add it to the claims list
-        InsurancePolicy policy = policies.get(0); // Assuming the first policy in the list
+       
+        InsurancePolicy policy = policies.get(0); 
         InsuranceClaim claim = new InsuranceClaim(cattle, farmer, policy);
         claims.add(claim);
     }

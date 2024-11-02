@@ -19,6 +19,6 @@ public class InsurancePolicy {
 
     @Override
     public String toString() {
-        return policyName; // This will be shown in the JComboBox
+        return policyName; 
     }
 }
