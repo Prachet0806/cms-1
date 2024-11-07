@@ -10,7 +10,11 @@ public class InsuranceClaim {
         this.cattle = cattle;
         this.farmer = farmer;
         this.policy = policy;
-        this.status = "Pending"; 
+        this.status = "Pending";
+    }
+
+    public Cattle getCattle() {
+        return cattle;
     }
 
     public String getDescription() {

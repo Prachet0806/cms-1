@@ -13,6 +13,9 @@ import java.util.Base64;
 import java.util.List;
 
 public class CattleManagementSystemGUI extends JFrame {
+    private JComboBox<Farmer> farmerComboBox;
+    private JTextField newFarmerNameField;
+    private JButton editFarmerButton;
     private static final String FARMER_FILE = "farmers.txt";
     private List<Farmer> farmers = new ArrayList<>();
     private JPanel actionPanel;
@@ -28,14 +31,14 @@ public class CattleManagementSystemGUI extends JFrame {
     private JCheckBox vaccinatedCheckBox;
     private static final String ENCRYPTION_KEY = ".uO$P8o}C:Nawc_Y5;rdu&GoD*X]R!iQ";
     private static final String CREDENTIALS_FILE = "C:\\Users\\nilay\\OneDrive\\Documents\\repos\\cms\\src\\gui\\credentials.txt";
-    private JComboBox<String> farmerComboBox;
-    private JButton editFarmerButton;
+    private JButton addFarmerButton;
+    private ManageClaimsController claimsController = new ManageClaimsController();
     public CattleManagementSystemGUI() {
         loadFarmers();
         setTitle("Cattle Management System");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
+        addFarmerButton = new JButton("Add Farmer");
         displayArea = new JTextArea();
         displayArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(displayArea);
@@ -47,6 +50,22 @@ public class CattleManagementSystemGUI extends JFrame {
         healthField = new JTextField(10);
         vaccinatedCheckBox = new JCheckBox("Vaccinated");
 
+        farmerComboBox = new JComboBox<>(farmers.toArray(new Farmer[0]));
+        newFarmerNameField = new JTextField(10);
+        editFarmerButton = new JButton("Edit Farmer");
+
+        editFarmerButton.addActionListener(new EditFarmerListener());
+
+        JPanel editFarmerPanel = new JPanel();
+        editFarmerPanel.add(new JLabel("Select Farmer:"));
+        editFarmerPanel.add(farmerComboBox);
+        editFarmerPanel.add(new JLabel("New Name:"));
+        editFarmerPanel.add(newFarmerNameField);
+        editFarmerPanel.add(editFarmerButton);
+        add(editFarmerPanel, BorderLayout.NORTH);
+
+        // Update farmers in dropdown when added
+        addFarmerButton.addActionListener(e -> updateFarmerComboBox());
 
 
         JButton addFarmerButton = new JButton("Add Farmer");
@@ -110,9 +129,39 @@ public class CattleManagementSystemGUI extends JFrame {
             @Override
             public void windowClosing(java.awt.event.WindowEvent windowEvent) {
                 saveFarmers();  // Save farmers on application exit
+                setupGUI();
             }
         });
     }
+    private void setupGUI() {
+        setLayout(new BorderLayout());
+
+        JPanel panel = new JPanel();
+        panel.add(farmerComboBox);
+        panel.add(editFarmerButton);
+        panel.add(addFarmerButton); // Ensure it’s added to the panel here
+
+        add(panel, BorderLayout.CENTER);
+
+        // Adding ActionListeners
+        addFarmerButton.addActionListener(e -> {
+            Farmer newFarmer = new Farmer("New Farmer");
+            farmerComboBox.addItem(newFarmer);
+        });
+
+        editFarmerButton.addActionListener(e -> {
+            Farmer selectedFarmer = (Farmer) farmerComboBox.getSelectedItem();
+            if (selectedFarmer != null) {
+                selectedFarmer.setName("Edited Farmer");
+                farmerComboBox.repaint();
+            }
+        });
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(400, 300);
+        setVisible(true);
+    }
+
     private void saveFarmers() {
         try (FileOutputStream fileOutputStream = new FileOutputStream(FARMER_FILE);
              ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -126,13 +175,19 @@ public class CattleManagementSystemGUI extends JFrame {
             e.printStackTrace();
         }
     }
-
+    private void updateFarmerComboBox() {
+        farmerComboBox.removeAllItems();
+        for (Farmer farmer : farmers) {
+            farmerComboBox.addItem(farmer);
+        }
+    }
     // Method to load farmers list from a Base64-encoded file
     private void loadFarmers() {
         File file = new File(FARMER_FILE);
         if (!file.exists()) {
             return;  // No file to load from, start with an empty list
         }
+
 
         try (FileInputStream fileInputStream = new FileInputStream(FARMER_FILE);
              ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
@@ -180,7 +235,23 @@ public class CattleManagementSystemGUI extends JFrame {
             }
         }
     }
-
+    private class EditFarmerListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            Farmer selectedFarmer = (Farmer) farmerComboBox.getSelectedItem();
+            String newName = newFarmerNameField.getText().trim();
+            if (selectedFarmer != null && !newName.isEmpty()) {
+                selectedFarmer.setName(newName);
+                displayArea.append("Farmer name updated to: " + newName + "\n");
+                auditLog.addEntry("Edited Farmer: " + selectedFarmer.getName());
+                saveFarmers();
+                updateFarmerComboBox();
+                newFarmerNameField.setText("");
+            } else {
+                JOptionPane.showMessageDialog(null, "Please select a farmer and enter a new name.");
+            }
+        }
+    }
     private class AddCattleListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -272,28 +343,36 @@ public class CattleManagementSystemGUI extends JFrame {
     private class ManageClaimsListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            ManageClaimsGUI manageClaimsGUI = new ManageClaimsGUI();
+            ManageClaimsGUI manageClaimsGUI = new ManageClaimsGUI(claimsController);
             manageClaimsGUI.setVisible(true);
         }
     }
 
-    private class ManageClaimsGUI extends JFrame {
+    public class ManageClaimsGUI extends JFrame {
         private JTextArea displayArea;
         private JButton approveButton;
         private JButton rejectButton;
         private JComboBox<InsuranceClaim> claimComboBox;
+        private JComboBox<InsurancePolicy> policyComboBox;  // Dropdown for viewing policies
+        private ManageClaimsController claimsController;
 
-        public ManageClaimsGUI() {
+        public ManageClaimsGUI(ManageClaimsController controller) {
+            this.claimsController = controller;
+
             setTitle("Manage Insurance Claims");
-            setSize(400, 300);
+            setSize(500, 400);
             setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
             displayArea = new JTextArea();
             displayArea.setEditable(false);
             JScrollPane scrollPane = new JScrollPane(displayArea);
 
+            // Initialize claim and policy combo boxes
             claimComboBox = new JComboBox<>();
             populateClaimsComboBox();
+
+            policyComboBox = new JComboBox<>();
+            populatePolicyComboBox();
 
             approveButton = new JButton("Approve Claim");
             approveButton.addActionListener(new ApproveClaimListener());
@@ -301,65 +380,106 @@ public class CattleManagementSystemGUI extends JFrame {
             rejectButton = new JButton("Reject Claim");
             rejectButton.addActionListener(new RejectClaimListener());
 
+            // Panel for claim actions
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(new JLabel("Select Claim:"));
             buttonPanel.add(claimComboBox);
             buttonPanel.add(approveButton);
             buttonPanel.add(rejectButton);
 
+            // Panel for policy selection
+            JPanel policyPanel = new JPanel();
+            policyPanel.add(new JLabel("Select Policy:"));
+            policyPanel.add(policyComboBox);
+
+            // Add components to the main GUI layout
             add(scrollPane, BorderLayout.CENTER);
             add(buttonPanel, BorderLayout.SOUTH);
+            add(policyPanel, BorderLayout.NORTH);
 
             updateClaimDisplay();
         }
 
-        private void populateClaimsComboBox() {
-            claimComboBox.removeAllItems();
-            for (InsuranceClaim claim : claims) {
-                claimComboBox.addItem(claim);
+        // Populates the policy dropdown with available policies
+        private void populatePolicyComboBox() {
+            policyComboBox.removeAllItems();
+            List<InsurancePolicy> policies = claimsController.getPolicies();
+            for (InsurancePolicy policy : policies) {
+                policyComboBox.addItem(policy);
             }
         }
 
+        // Populates the claims dropdown with pending claims
+        private void populateClaimsComboBox() {
+            claimComboBox.removeAllItems();
+            List<InsuranceClaim> pendingClaims = claimsController.getPendingClaims();
+            if (pendingClaims.isEmpty()) {
+                System.out.println("No pending claims available.");
+            } else {
+                for (InsuranceClaim claim : pendingClaims) {
+                    System.out.println("Adding claim to comboBox: " + claim);
+                    claimComboBox.addItem(claim);
+                }
+            }
+        }
+
+        // Updates the display area with a list of pending claims and their details
         private void updateClaimDisplay() {
             StringBuilder claimList = new StringBuilder("Insurance Claims:\n");
-            if (claims.isEmpty()) {
+            List<InsuranceClaim> pendingClaims = claimsController.getPendingClaims();
+            if (pendingClaims.isEmpty()) {
                 claimList.append("No claims available.");
             } else {
-                for (InsuranceClaim claim : claims) {
-                    claimList.append(claim.toString()).append("\n");
+                for (InsuranceClaim claim : pendingClaims) {
+                    double rate = claimsController.calculateInsuranceRate(claim.getCattle(), claim.getPolicy());
+                    claimList.append(claim.toString())
+                            .append(" | Policy: ")
+                            .append(claim.getPolicy().getPolicyName())
+                            .append(" | Estimated Rate: $")
+                            .append(String.format("%.2f", rate))
+                            .append("\n");
                 }
             }
             displayArea.setText(claimList.toString());
         }
 
+        // Listener for approving claims
         private class ApproveClaimListener implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 InsuranceClaim selectedClaim = (InsuranceClaim) claimComboBox.getSelectedItem();
                 if (selectedClaim != null) {
-                    claims.remove(selectedClaim);
-                    auditLog.addEntry("Claim approved: " + selectedClaim);
+                    claimsController.approveClaim(selectedClaim);
                     updateClaimDisplay();
                     populateClaimsComboBox();
-                    JOptionPane.showMessageDialog(null, "Claim approved!");
+                    JOptionPane.showMessageDialog(null, "Claim approved with rate: $" +
+                            String.format("%.2f", claimsController.calculateInsuranceRate(
+                                    selectedClaim.getCattle(),
+                                    selectedClaim.getPolicy())));
+                } else {
+                    JOptionPane.showMessageDialog(null, "No claim selected to approve.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
 
+        // Listener for rejecting claims
         private class RejectClaimListener implements ActionListener {
             @Override
             public void actionPerformed(ActionEvent e) {
                 InsuranceClaim selectedClaim = (InsuranceClaim) claimComboBox.getSelectedItem();
                 if (selectedClaim != null) {
-                    claims.remove(selectedClaim);
-                    auditLog.addEntry("Claim rejected: " + selectedClaim);
+                    claimsController.rejectClaim(selectedClaim);
                     updateClaimDisplay();
                     populateClaimsComboBox();
                     JOptionPane.showMessageDialog(null, "Claim rejected.");
+                } else {
+                    JOptionPane.showMessageDialog(null, "No claim selected to reject.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         }
     }
+
+
 
     // Login functionality
     public static void main(String[] args) {
