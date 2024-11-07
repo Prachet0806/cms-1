@@ -1,11 +1,15 @@
 package gui;
 
 import logging.AuditLog;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 public class CattleManagementSystemGUI extends JFrame {
@@ -20,6 +24,8 @@ public class CattleManagementSystemGUI extends JFrame {
     private JTextField ageField;
     private JTextField healthField;
     private JCheckBox vaccinatedCheckBox;
+    private static final String ENCRYPTION_KEY = ".uO$P8o}C:Nawc_Y5;rdu&GoD*X]R!iQ";
+    private static final String CREDENTIALS_FILE = "C:\\Users\\nilay\\OneDrive\\Documents\\repos\\cms\\src\\gui\\credentials.txt";
 
     public CattleManagementSystemGUI() {
         setTitle("Cattle Management System");
@@ -87,21 +93,17 @@ public class CattleManagementSystemGUI extends JFrame {
         policies.add(new InsurancePolicy("Comprehensive Coverage", "Includes coverage for major illnesses and accidents, plus routine check-ups"));
         policies.add(new InsurancePolicy("High-Risk Coverage", "Specialized coverage for high-risk breeds or older cattle"));
 
-     
         addSampleData();
     }
 
     private void addSampleData() {
-    
         Farmer farmer = new Farmer("John Doe");
         farmers.add(farmer);
-
 
         Cattle cattle = new Cattle("Bessie", "Holstein", 5, "Healthy", true);
         farmer.addCattle(cattle);
 
-       
-        InsurancePolicy policy = policies.get(0); 
+        InsurancePolicy policy = policies.get(0);
         InsuranceClaim claim = new InsuranceClaim(cattle, farmer, policy);
         claims.add(claim);
     }
@@ -195,7 +197,6 @@ public class CattleManagementSystemGUI extends JFrame {
         }
     }
 
-    // Inner class ManageClaimsGUI
     private class ManageClaimsGUI extends JFrame {
         private JTextArea displayArea;
         private JButton approveButton;
@@ -256,9 +257,11 @@ public class CattleManagementSystemGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 InsuranceClaim selectedClaim = (InsuranceClaim) claimComboBox.getSelectedItem();
                 if (selectedClaim != null) {
-                    selectedClaim.approveClaim();
+                    claims.remove(selectedClaim);
+                    auditLog.addEntry("Claim approved: " + selectedClaim);
                     updateClaimDisplay();
                     populateClaimsComboBox();
+                    JOptionPane.showMessageDialog(null, "Claim approved!");
                 }
             }
         }
@@ -268,18 +271,18 @@ public class CattleManagementSystemGUI extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 InsuranceClaim selectedClaim = (InsuranceClaim) claimComboBox.getSelectedItem();
                 if (selectedClaim != null) {
-                    selectedClaim.rejectClaim();
+                    claims.remove(selectedClaim);
+                    auditLog.addEntry("Claim rejected: " + selectedClaim);
                     updateClaimDisplay();
                     populateClaimsComboBox();
+                    JOptionPane.showMessageDialog(null, "Claim rejected.");
                 }
             }
         }
     }
 
+    // Login functionality
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            CattleManagementSystemGUI frame = new CattleManagementSystemGUI();
-            frame.setVisible(true);
-        });
+        SwingUtilities.invokeLater(LoginGUI::new);
     }
 }
