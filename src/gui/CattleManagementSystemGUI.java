@@ -13,7 +13,9 @@ import java.util.Base64;
 import java.util.List;
 
 public class CattleManagementSystemGUI extends JFrame {
+    private static final String FARMER_FILE = "farmers.txt";
     private List<Farmer> farmers = new ArrayList<>();
+    private JPanel actionPanel;
     private List<InsurancePolicy> policies = new ArrayList<>();
     private List<InsuranceClaim> claims = new ArrayList<>();
     private AuditLog auditLog = new AuditLog();
@@ -26,8 +28,10 @@ public class CattleManagementSystemGUI extends JFrame {
     private JCheckBox vaccinatedCheckBox;
     private static final String ENCRYPTION_KEY = ".uO$P8o}C:Nawc_Y5;rdu&GoD*X]R!iQ";
     private static final String CREDENTIALS_FILE = "C:\\Users\\nilay\\OneDrive\\Documents\\repos\\cms\\src\\gui\\credentials.txt";
-
+    private JComboBox<String> farmerComboBox;
+    private JButton editFarmerButton;
     public CattleManagementSystemGUI() {
+        loadFarmers();
         setTitle("Cattle Management System");
         setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -42,6 +46,8 @@ public class CattleManagementSystemGUI extends JFrame {
         ageField = new JTextField(5);
         healthField = new JTextField(10);
         vaccinatedCheckBox = new JCheckBox("Vaccinated");
+
+
 
         JButton addFarmerButton = new JButton("Add Farmer");
         addFarmerButton.addActionListener(new AddFarmerListener());
@@ -61,6 +67,18 @@ public class CattleManagementSystemGUI extends JFrame {
         JButton manageClaimsButton = new JButton("Manage Claims");
         manageClaimsButton.addActionListener(new ManageClaimsListener());
 
+        JButton displayCattleButton = new JButton("Display Cattle");
+        displayCattleButton.addActionListener(new DisplayCattleListener());
+
+        // Initialize actionPanel here as the class-level variable
+        actionPanel = new JPanel();
+        actionPanel.setLayout(new BoxLayout(actionPanel, BoxLayout.Y_AXIS)); // Set desired layout
+        actionPanel.add(displayFarmersButton);
+        actionPanel.add(showInsuranceButton);
+        actionPanel.add(viewAuditLogButton);
+        actionPanel.add(manageClaimsButton);
+        actionPanel.add(displayCattleButton);
+
         JPanel inputPanel = new JPanel();
         inputPanel.add(new JLabel("Farmer Name:"));
         inputPanel.add(farmerNameField);
@@ -78,12 +96,6 @@ public class CattleManagementSystemGUI extends JFrame {
         cattlePanel.add(vaccinatedCheckBox);
         cattlePanel.add(addCattleButton);
 
-        JPanel actionPanel = new JPanel();
-        actionPanel.add(displayFarmersButton);
-        actionPanel.add(showInsuranceButton);
-        actionPanel.add(viewAuditLogButton);
-        actionPanel.add(manageClaimsButton);
-
         add(scrollPane, BorderLayout.CENTER);
         add(inputPanel, BorderLayout.NORTH);
         add(cattlePanel, BorderLayout.SOUTH);
@@ -94,13 +106,59 @@ public class CattleManagementSystemGUI extends JFrame {
         policies.add(new InsurancePolicy("High-Risk Coverage", "Specialized coverage for high-risk breeds or older cattle"));
 
         addSampleData();
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                saveFarmers();  // Save farmers on application exit
+            }
+        });
+    }
+    private void saveFarmers() {
+        try (FileOutputStream fileOutputStream = new FileOutputStream(FARMER_FILE);
+             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream)) {
+
+            objectOutputStream.writeObject(farmers);
+            String encodedFarmers = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
+            fileOutputStream.write(encodedFarmers.getBytes());
+            System.out.println("Farmers saved successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Method to load farmers list from a Base64-encoded file
+    private void loadFarmers() {
+        File file = new File(FARMER_FILE);
+        if (!file.exists()) {
+            return;  // No file to load from, start with an empty list
+        }
+
+        try (FileInputStream fileInputStream = new FileInputStream(FARMER_FILE);
+             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
+
+            int read;
+            while ((read = fileInputStream.read()) != -1) {
+                byteArrayOutputStream.write(read);
+            }
+            byte[] data = Base64.getDecoder().decode(byteArrayOutputStream.toByteArray());
+
+            try (ObjectInputStream objectInputStream = new ObjectInputStream(new ByteArrayInputStream(data))) {
+                farmers = (List<Farmer>) objectInputStream.readObject();
+                System.out.println("Farmers loaded successfully.");
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void addSampleData() {
-        Farmer farmer = new Farmer("John Doe");
+        Farmer farmer = new Farmer("Jeff");
         farmers.add(farmer);
 
-        Cattle cattle = new Cattle("Bessie", "Holstein", 5, "Healthy", true);
+        Cattle cattle = new Cattle("PLACEHOLDER", "PLACEHOLDER", 5, "Healthy", true);
         farmer.addCattle(cattle);
 
         InsurancePolicy policy = policies.get(0);
@@ -188,7 +246,29 @@ public class CattleManagementSystemGUI extends JFrame {
             displayArea.setText(logEntries.toString());
         }
     }
-
+    private class DisplayCattleListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            StringBuilder cattleList = new StringBuilder("Cattle Details:\n\n");
+            for (Farmer farmer : farmers) {
+                cattleList.append("Farmer: ").append(farmer.getName()).append("\n");
+                List<Cattle> cattleListForFarmer = farmer.getCattleList(); // Ensure Farmer has getCattleList()
+                if (cattleListForFarmer.isEmpty()) {
+                    cattleList.append("  No cattle registered.\n\n");
+                    continue;
+                }
+                for (Cattle cattle : cattleListForFarmer) {
+                    cattleList.append("  Name: ").append(cattle.getName()).append("\n");
+                    cattleList.append("  Breed: ").append(cattle.getBreed()).append("\n");
+                    cattleList.append("  Age: ").append(cattle.getAge()).append("\n");
+                    cattleList.append("  Health Condition: ").append(cattle.getHealthCondition()).append("\n");
+                    cattleList.append("  Vaccinated: ").append(cattle.isVaccinated() ? "Yes" : "No").append("\n\n");
+                }
+            }
+            displayArea.setText(cattleList.toString());
+            auditLog.addEntry("Displayed Cattle Details");
+        }
+    }
     private class ManageClaimsListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {

@@ -1,6 +1,9 @@
 package gui;
 
-public class Cattle {
+import java.io.Serializable;
+
+public class Cattle implements Serializable {
+    private static final long serialVersionUID = 1L;  // Added serialVersionUID for versioning of the class
     private String name;
     private String breed;
     private int age;
@@ -33,5 +36,16 @@ public class Cattle {
 
     public boolean isVaccinated() {
         return vaccinated;
+    }
+
+    @Override
+    public String toString() {
+        return "Cattle{" +
+                "name='" + name + '\'' +
+                ", breed='" + breed + '\'' +
+                ", age=" + age +
+                ", healthCondition='" + healthCondition + '\'' +
+                ", vaccinated=" + vaccinated +
+                '}';
     }
 }

@@ -1,9 +1,10 @@
 package gui;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Farmer {
+public class Farmer implements Serializable {
     private String name;
     private List<Cattle> cattleList;
 
