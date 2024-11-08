@@ -1,0 +1,71 @@
+/* General body styling */
+.root {
+    -fx-background-color: linear-gradient(to right, #6a11cb, #2575fc);
+    -fx-padding: 20;
+    -fx-font-family: 'Montserrat', Arial, sans-serif;
+}
+
+/* GridPane button styling */
+.button {
+    -fx-background-color: #ff851b;
+    -fx-text-fill: white;
+    /*-fx-font-size: 30px;*/
+    -fx-font-weight: bold;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 8, 0.5, 0, 0);
+    -fx-alignment: center;  /* Center the text within the button */
+}
+
+/* Custom button styles for different categories */
+.box1 {
+    -fx-background-color: #d96500;
+}
+
+.box2 {
+    -fx-background-color: #39cccc;
+}
+
+.box5 {
+    -fx-background-color: #ffdc00;
+}
+
+.button:hover {
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.8), 10, 0.7, 0, 0);
+}
+
+/* Styling for the navbar buttons */
+.navbar-button {
+    -fx-background-color: #4CAF50; /* Green background similar to existing button styles */
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-cursor: hand; /* Make the cursor a hand on hover */
+}
+
+.navbar-button:hover {
+    -fx-background-color: #45a049; /* Darken the green background on hover */
+}
+
+/* Optional: Styling for the navbar itself */
+.navbar {
+    -fx-padding: 10px;
+    -fx-spacing: 15px; /* Space between navbar items */
+    -fx-background-color: #333; /* Dark background for the navbar */
+    -fx-alignment: center; /* Align buttons in the center */
+}
+/* Add a specific style for the logout button if you want it to stand out */
+.navbar-button.logout {
+    -fx-background-color: #ff6347; /* Tomato red color for logout button */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.navbar-button.logout:hover {
+    -fx-background-color: #ff4500; /* Darker red when hovered */
+}
