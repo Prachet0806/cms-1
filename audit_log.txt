@@ -1,0 +1,7 @@
+2024-11-08T11:30:03.339605700: User prachet successfully logged in.
+2024-11-08T11:30:03.343412300: Farmer prachet logged in.
+2024-11-08T11:30:40.332531100: Added new cattle: bess
+2024-11-08T11:31:02.228693300: Added new cattle: bessie
+2024-11-08T11:31:05.557595600: Viewing insurance premiums.
+2024-11-08T11:32:26.092762: User prachet successfully logged in.
+2024-11-08T11:32:26.093765700: Farmer prachet logged in.
